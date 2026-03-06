@@ -18,6 +18,7 @@ Give it a video URL or local file, and it handles the full pipeline: **Download 
 ## 📢 News
 
 - **2026-03-04**:
+  - **Git History Notice**: A mistaken attempt to reduce GitHub repo size caused the git history to be rewritten. Sorry for the inconvenience. Existing users need to run `git fetch origin && git reset --hard origin/main` to sync with the latest history
   - Added [subtitle burning](#subtitle-burning) — use `--burn-subtitles` to hard-burn SRT subtitles into clip videos; optionally add `--subtitle-translation "Simplified Chinese"` to burn bilingual subtitles (requires ffmpeg with libass)
   - Switched OpenRouter default model from openrouter/free to stepfun/step-3.5-flash:free
 - **2026-03-01**:

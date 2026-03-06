@@ -18,6 +18,7 @@
 ## 📢 最新动态
 
 - **2026-03-04**:
+  - **Git 历史变更通知**：错误的减小 GitHub size 的尝试导致 Git 历史被重写，对现有用户造成不便，深感抱歉。已有克隆用户需运行 `git fetch origin && git reset --hard origin/main` 以同步最新历史
   - 新增[字幕烧录功能](#subtitle-burning) — 使用 `--burn-subtitles` 将 SRT 字幕直接烧录到剪辑视频中；可选 `--subtitle-translation "Simplified Chinese"` 同时烧录中英双语字幕（需要带 libass 的 ffmpeg）
   - OpenRouter 默认模型从 openrouter/free 切换至 stepfun/step-3.5-flash:free
 - **2026-03-01**:
