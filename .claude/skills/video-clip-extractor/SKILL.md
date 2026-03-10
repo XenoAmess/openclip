@@ -47,11 +47,15 @@ For local files with existing subtitles, place the `.srt` file in the same direc
 ## Preflight Checklist
 
 - Run from repository root so relative paths (for example `references/`) resolve correctly
+- **`ffmpeg` must be installed** (required for all clip generation):
+  - macOS: `brew install ffmpeg`
+  - Ubuntu: `sudo apt install ffmpeg`
+  - Windows: download from [ffmpeg.org](https://ffmpeg.org)
+  - If using `--burn-subtitles`: needs ffmpeg with `libass` (see README for details)
 - Set one API key:
   - `QWEN_API_KEY` (default provider: qwen), or
   - `OPENROUTER_API_KEY` (if `--llm-provider openrouter`)
 - If using `--speaker-references`: run `uv sync --extra speakers` and set `HUGGINGFACE_TOKEN`
-- If using `--burn-subtitles`: ensure `ffmpeg` is installed with `libass`
 
 ## CLI Reference
 
@@ -154,6 +158,7 @@ processed_videos/{video_name}/
 
 | Error | Fix |
 |---|---|
+| "ffmpeg not found" / clip generation fails silently | Install ffmpeg: `brew install ffmpeg` (macOS) or `sudo apt install ffmpeg` (Ubuntu) |
 | "No API key provided" | Set `QWEN_API_KEY` or `OPENROUTER_API_KEY` env var |
 | "Video download failed" | Check network/URL; try different `--browser`; or use local file |
 | "Transcript generation failed" | Try `--force-whisper` or check audio quality |
