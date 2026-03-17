@@ -174,7 +174,7 @@ class VideoOrchestrator:
             logger.info("🎬 Clip generation: disabled")
 
         if self.add_titles_enabled:
-            self.title_adder = TitleAdder(output_dir=str(self.output_dir))
+            self.title_adder = TitleAdder(output_dir=str(self.output_dir), language=self.language)
             logger.info(f"🎨 Title adding: enabled (style: {title_style})")
         else:
             self.title_adder = None
@@ -197,7 +197,7 @@ class VideoOrchestrator:
         # Initialize cover image generator
         self.generate_cover_enabled = generate_cover
         if self.generate_cover_enabled:
-            self.cover_generator = CoverImageGenerator()
+            self.cover_generator = CoverImageGenerator(language=self.language)
             logger.info(f"🖼️  Cover generation: enabled (text location: {cover_text_location})")
         else:
             self.cover_generator = None

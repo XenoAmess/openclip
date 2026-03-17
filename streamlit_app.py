@@ -571,7 +571,7 @@ with st.sidebar:
     title_style = data['title_style']
 
     # Additional options
-    languages = ["zh", "en"]
+    languages = ["zh", "en", "vi"]
     language = st.selectbox(
         t['language'],
         options=languages,

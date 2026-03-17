@@ -32,25 +32,36 @@ COVER_COLORS: Dict[str, Tuple[int, int, int]] = {
 class CoverImageGenerator:
     """Generate cover images with styled text overlays from video frames"""
     
-    def __init__(self):
-        self.font_path = self._find_chinese_font()
-    
-    def _find_chinese_font(self):
-        """Find available Chinese font (prefer bold variants)"""
-        fonts = [
-            # Bold variants first
-            "/System/Library/Fonts/PingFang.ttc",  # Has bold weight
-            "/System/Library/Fonts/STHeiti Medium.ttc",
-            "/System/Library/Fonts/Hiragino Sans GB.ttc",
-            "C:/Windows/Fonts/msyhbd.ttc",  # Microsoft YaHei Bold
-            "C:/Windows/Fonts/simhei.ttf",  # SimHei (bold)
-            # Regular variants as fallback
-            "/System/Library/Fonts/STHeiti Light.ttc",
-            "C:/Windows/Fonts/msyh.ttc",
-            "C:/Windows/Fonts/simsun.ttc",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        ]
-        
+    def __init__(self, language: str = "zh"):
+        self.font_path = self._find_font(language)
+
+    def _find_font(self, language: str):
+        """Find best available font for the given output language"""
+        if language == "vi":
+            # Vietnamese needs Latin Extended coverage; Arial Unicode covers both CJK and Latin Extended
+            fonts = [
+                "/Library/Fonts/Arial Unicode.ttf",
+                "/Library/Fonts/Arial Bold.ttf",
+                "/Library/Fonts/Arial.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+                # CJK fonts as last resort (may render Vietnamese poorly)
+                "/System/Library/Fonts/PingFang.ttc",
+                "/System/Library/Fonts/STHeiti Medium.ttc",
+            ]
+        else:
+            # Chinese/English: prefer purpose-built CJK bold fonts
+            fonts = [
+                "/System/Library/Fonts/PingFang.ttc",  # Has bold weight
+                "/System/Library/Fonts/STHeiti Medium.ttc",
+                "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                "C:/Windows/Fonts/msyhbd.ttc",  # Microsoft YaHei Bold
+                "C:/Windows/Fonts/simhei.ttf",  # SimHei (bold)
+                "/System/Library/Fonts/STHeiti Light.ttc",
+                "C:/Windows/Fonts/msyh.ttc",
+                "C:/Windows/Fonts/simsun.ttc",
+                "/Library/Fonts/Arial Unicode.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+            ]
         for font_path in fonts:
             if os.path.exists(font_path):
                 return font_path

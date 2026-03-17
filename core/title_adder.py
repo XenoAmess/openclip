@@ -28,21 +28,34 @@ TITLE_FONT_SIZES: Dict[str, int] = {
 class ArtisticTextRenderer:
     """Artistic text renderer for Chinese and other languages"""
     
-    def __init__(self):
-        self.font_path = self._find_chinese_font()
+    def __init__(self, language: str = "zh"):
+        self.font_path = self._find_font(language)
         self.font_cache = {}
-    
-    def _find_chinese_font(self):
-        """Find available Chinese font"""
-        fonts = [
-            "/System/Library/Fonts/STHeiti Light.ttc",
-            "/System/Library/Fonts/PingFang.ttc",
-            "/System/Library/Fonts/Hiragino Sans GB.ttc",
-            "C:/Windows/Fonts/simsun.ttc",
-            "C:/Windows/Fonts/msyh.ttc",
-            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-        ]
-        
+
+    def _find_font(self, language: str):
+        """Find best available font for the given output language"""
+        if language == "vi":
+            # Vietnamese needs Latin Extended coverage; Arial Unicode covers both CJK and Latin Extended
+            fonts = [
+                "/Library/Fonts/Arial Unicode.ttf",
+                "/Library/Fonts/Arial Bold.ttf",
+                "/Library/Fonts/Arial.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                # CJK fonts as last resort (may render Vietnamese poorly)
+                "/System/Library/Fonts/STHeiti Light.ttc",
+                "/System/Library/Fonts/PingFang.ttc",
+            ]
+        else:
+            # Chinese/English: prefer purpose-built CJK fonts
+            fonts = [
+                "/System/Library/Fonts/STHeiti Light.ttc",
+                "/System/Library/Fonts/PingFang.ttc",
+                "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                "C:/Windows/Fonts/simsun.ttc",
+                "C:/Windows/Fonts/msyh.ttc",
+                "/Library/Fonts/Arial Unicode.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            ]
         for font_path in fonts:
             if os.path.exists(font_path):
                 return font_path
@@ -432,16 +445,17 @@ class ArtisticTextRenderer:
 class TitleAdder:
     """Add artistic titles to video clips"""
     
-    def __init__(self, output_dir: str = "engaging_clips_with_titles"):
+    def __init__(self, output_dir: str = "engaging_clips_with_titles", language: str = "zh"):
         """
         Initialize title adder
-        
+
         Args:
             output_dir: Directory to save videos with titles
+            language: Output language code (e.g. "zh", "en", "vi") for font selection
         """
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
-        self.renderer = ArtisticTextRenderer()
+        self.renderer = ArtisticTextRenderer(language=language)
         logger.info(f"📁 Title output directory: {self.output_dir}")
     
     def add_titles_to_clips(self,
