@@ -1060,6 +1060,10 @@ Examples:
   # Full pipeline with OpenRouter
   export OPENROUTER_API_KEY=your_api_key
   python video_orchestrator.py --llm-provider openrouter "https://www.bilibili.com/video/BV1234567890"
+
+  # Full pipeline with MiniMax
+  export MINIMAX_API_KEY=your_api_key
+  python video_orchestrator.py --llm-provider minimax "https://www.bilibili.com/video/BV1234567890"
   
   # With English output
   python video_orchestrator.py --language en "https://www.youtube.com/watch?v=5MWT_doo68k"
@@ -1092,7 +1096,7 @@ Examples:
   # Specify output directory
   python video_orchestrator.py -o "my_outputs" "https://www.bilibili.com/video/BV1234567890"
 
-Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your selected LLM provider
+Note: Set QWEN_API_KEY, OPENROUTER_API_KEY, or MINIMAX_API_KEY environment variable based on your selected LLM provider
         """
     )
     
@@ -1131,7 +1135,7 @@ Note: Set QWEN_API_KEY or OPENROUTER_API_KEY environment variable based on your 
                        choices=['zh', 'en'],
                        help='Language for output (zh: Chinese, en: English, default: zh)')
     parser.add_argument('--llm-provider', default='qwen',
-                       choices=['qwen', 'openrouter'],
+                       choices=['qwen', 'openrouter', 'minimax'],
                        help='LLM provider to use for engaging moments analysis (default: qwen)')
     parser.add_argument('--cover-text-location', default='center',
                        choices=['top', 'upper_middle', 'bottom', 'center'],

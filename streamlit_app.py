@@ -543,13 +543,13 @@ with st.sidebar:
     # LLM provider selection
     llm_provider = st.selectbox(
         t['llm_provider'],
-        options=["qwen", "openrouter", "glm"],
-        index=["qwen", "openrouter", "glm"].index(data['llm_provider']),
+        options=["qwen", "openrouter", "glm", "minimax"],
+        index=["qwen", "openrouter", "glm", "minimax"].index(data['llm_provider']),
         help=t['select_llm_provider'],
         key=f"llm_provider_{st.session_state.reset_counter}"
     )
     data['llm_provider'] = llm_provider
-    
+
     # Show model info based on provider
     if llm_provider == "qwen":
         st.caption(f"ℹ️ Using model: {LLM_CONFIG['qwen']['default_model']}")
@@ -557,7 +557,9 @@ with st.sidebar:
         st.caption(f"ℹ️ Using model: {LLM_CONFIG['openrouter']['default_model']}")
     elif llm_provider == "glm":
         st.caption(f"ℹ️ Using model: {LLM_CONFIG['glm']['default_model']}")
-    
+    elif llm_provider == "minimax":
+        st.caption(f"ℹ️ Using model: {LLM_CONFIG['minimax']['default_model']}")
+
     # API key input (optional, since it can be set via environment variable)
     api_key_env_var = API_KEY_ENV_VARS.get(llm_provider, "QWEN_API_KEY")
     api_key = st.text_input(
