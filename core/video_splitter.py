@@ -215,8 +215,8 @@ class VideoSplitter:
             ]
             
             try:
-                result = subprocess.run(cmd, capture_output=True, text=True)
-                info = json.loads(result.stdout)
+                result = subprocess.run(cmd, capture_output=True)
+                info = json.loads(result.stdout.decode('utf-8', errors='ignore'))
                 total_duration = float(info['format']['duration'])
                 print(f"📊 Video duration: {total_duration:.1f} seconds")
                 

@@ -248,6 +248,48 @@ class JobManager:
         
         logger.info(f"Job {job_id} deleted")
     
+    def retry_job(self, job_id: str) -> Optional[str]:
+        """
+        Retry a failed or cancelled job by creating a new job with the same parameters
+        
+        Args:
+            job_id: ID of the job to retry
+            
+        Returns:
+            ID of the new job, or None if original job not found
+        """
+        # Find the original job from disk (including completed/failed jobs)
+        original_job = None
+        job_file = self.jobs_dir / f"{job_id}.json"
+        
+        if job_file.exists():
+            try:
+                with open(job_file, 'r') as f:
+                    data = json.load(f)
+                original_job = Job.from_dict(data)
+            except Exception as e:
+                logger.error(f"Error loading job {job_id} for retry: {e}")
+                return None
+        
+        if not original_job:
+            logger.error(f"Job {job_id} not found for retry")
+            return None
+        
+        # Create a new job with the same parameters
+        new_job_id = str(uuid.uuid4())
+        new_job = Job(
+            job_id=new_job_id,
+            video_source=original_job.video_source,
+            options=original_job.options
+        )
+        
+        with self._lock:
+            self.active_jobs[new_job_id] = new_job
+            self._save_job(new_job)
+        
+        logger.info(f"Created retry job {new_job_id} for failed job {job_id}")
+        return new_job_id
+    
     def cleanup_old_jobs(self, days: int = 7):
         """Delete jobs older than specified days"""
         cutoff = datetime.now().timestamp() - (days * 24 * 60 * 60)

@@ -865,6 +865,84 @@ with st.sidebar:
 # Main content area
 
 # ============================================================================
+# WORKER FUNCTION FOR BACKGROUND PROCESSING
+# ============================================================================
+def process_video_worker(job, progress_callback):
+    """
+    Worker function that processes video for a job
+    This runs in a background thread managed by JobManager
+    """
+    options = job.options
+    
+    orchestrator = VideoOrchestrator(
+        output_dir=options['output_dir'],
+        max_duration_minutes=options['max_duration_minutes'],
+        whisper_model=options['whisper_model'],
+        browser=options.get('browser'),
+        cookies=options.get('cookies_file') or None,
+        api_key=options['api_key'],
+        llm_provider=options['llm_provider'],
+        skip_analysis=False,
+        generate_clips=options['generate_clips'],
+        add_titles=options['add_titles'],
+        title_style=options['title_style'],
+        use_background=options['use_background'],
+        generate_cover=options['generate_cover'],
+        language=options['language'],
+        debug=False,
+        custom_prompt_file=options.get('custom_prompt_file'),
+        max_clips=options['max_clips'],
+        enable_diarization=bool(options.get('speaker_references_dir')),
+        speaker_references_dir=options.get('speaker_references_dir'),
+        burn_subtitles=options.get('burn_subtitles', False),
+        subtitle_translation=options.get('subtitle_translation') or None,
+        mode=options.get('mode', 'engaging_moments'),
+        user_intent=options.get('user_intent') or None,
+    )
+    
+    result = asyncio.run(orchestrator.process_video(
+        job.video_source,
+        force_whisper=options['force_whisper'],
+        skip_download=False,
+        progress_callback=progress_callback,
+    ))
+
+    if not result.success:
+        raise RuntimeError(getattr(result, 'error_message', None) or "Processing failed")
+    
+    # Convert result to dict for JSON serialization
+    return {
+        'success': result.success,
+        'error_message': getattr(result, 'error_message', None),
+        'processing_time': getattr(result, 'processing_time', None),
+        'video_info': getattr(result, 'video_info', None),
+        'transcript_source': getattr(result, 'transcript_source', None),
+        'engaging_moments_analysis': getattr(result, 'engaging_moments_analysis', None),
+        'clip_generation': getattr(result, 'clip_generation', None),
+        'post_processing': getattr(result, 'post_processing', None),
+        'cover_generation': getattr(result, 'cover_generation', None),
+    }
+
+
+# Define retry handler (needs process_video_worker to be defined first)
+def handle_retry(job_id):
+    """Handle retry button click for a job"""
+    new_job_id = job_manager.retry_job(job_id)
+    if new_job_id:
+        # Start the new job
+        job_manager.start_job(new_job_id, process_video_worker)
+        
+        # Auto-track if no jobs are being tracked
+        if not st.session_state.processing_job_ids:
+            st.session_state.processing_job_ids = [new_job_id]
+            st.session_state.processing = True
+        
+        st.session_state.retry_success = f"{new_job_id[:8]}..."
+        st.rerun()
+    else:
+        st.session_state.retry_error = True
+
+# ============================================================================
 # JOB LIST SECTION
 # ============================================================================
 st.header("📋 Your Jobs")
@@ -964,6 +1042,11 @@ if jobs:
                             st.rerun()
                 elif job.status.value in ['failed', 'cancelled', 'pending']:
                     with button_placeholder.container():
+                        # Show Retry button for failed or cancelled jobs
+                        if job.status.value in ['failed', 'cancelled']:
+                            if st.button("🔄 Retry", key=f"retry_{job.id}", use_container_width=True, on_click=handle_retry, args=(job.id,)):
+                                pass  # Callback handles the retry
+                        
                         if st.button("🗑️ Delete", key=f"delete_{job.id}", use_container_width=True):
                             job_manager.delete_job(job.id)
                             st.rerun()
@@ -1069,67 +1152,19 @@ if st.session_state.processing:
     st.rerun()
 
 # ============================================================================
-# WORKER FUNCTION FOR BACKGROUND PROCESSING
-# ============================================================================
-def process_video_worker(job, progress_callback):
-    """
-    Worker function that processes video for a job
-    This runs in a background thread managed by JobManager
-    """
-    options = job.options
-    
-    orchestrator = VideoOrchestrator(
-        output_dir=options['output_dir'],
-        max_duration_minutes=options['max_duration_minutes'],
-        whisper_model=options['whisper_model'],
-        browser=options.get('browser'),
-        cookies=options.get('cookies_file') or None,
-        api_key=options['api_key'],
-        llm_provider=options['llm_provider'],
-        skip_analysis=False,
-        generate_clips=options['generate_clips'],
-        add_titles=options['add_titles'],
-        title_style=options['title_style'],
-        use_background=options['use_background'],
-        generate_cover=options['generate_cover'],
-        language=options['language'],
-        debug=False,
-        custom_prompt_file=options.get('custom_prompt_file'),
-        max_clips=options['max_clips'],
-        enable_diarization=bool(options.get('speaker_references_dir')),
-        speaker_references_dir=options.get('speaker_references_dir'),
-        burn_subtitles=options.get('burn_subtitles', False),
-        subtitle_translation=options.get('subtitle_translation') or None,
-        mode=options.get('mode', 'engaging_moments'),
-        user_intent=options.get('user_intent') or None,
-    )
-    
-    result = asyncio.run(orchestrator.process_video(
-        job.video_source,
-        force_whisper=options['force_whisper'],
-        skip_download=False,
-        progress_callback=progress_callback,
-    ))
-
-    if not result.success:
-        raise RuntimeError(getattr(result, 'error_message', None) or "Processing failed")
-    
-    # Convert result to dict for JSON serialization
-    return {
-        'success': result.success,
-        'error_message': getattr(result, 'error_message', None),
-        'processing_time': getattr(result, 'processing_time', None),
-        'video_info': getattr(result, 'video_info', None),
-        'transcript_source': getattr(result, 'transcript_source', None),
-        'engaging_moments_analysis': getattr(result, 'engaging_moments_analysis', None),
-        'clip_generation': getattr(result, 'clip_generation', None),
-        'post_processing': getattr(result, 'post_processing', None),
-        'cover_generation': getattr(result, 'cover_generation', None),
-    }
-
-# ============================================================================
 # BUTTON CLICK HANDLERS
 # ============================================================================
+
+# Show retry success/error messages
+if getattr(st.session_state, 'retry_success', None):
+    st.success(f"✅ Job retried! New ID: `{st.session_state.retry_success}`")
+    del st.session_state.retry_success
+    time.sleep(1)
+    st.rerun()
+
+if getattr(st.session_state, 'retry_error', False):
+    st.error("Failed to retry job")
+    del st.session_state.retry_error
 
 # --- Handle Start ---
 if process_clicked:

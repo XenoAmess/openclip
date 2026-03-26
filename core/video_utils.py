@@ -292,9 +292,9 @@ class VideoMetadataExtractor:
             stdout, stderr = await process.communicate()
             
             if process.returncode != 0:
-                raise Exception(f"ffprobe failed: {stderr.decode()}")
+                raise Exception(f"ffprobe failed: {stderr.decode('utf-8', errors='ignore')}")
             
-            probe_data = json.loads(stdout.decode())
+            probe_data = json.loads(stdout.decode('utf-8', errors='ignore'))
             
             # Extract relevant information
             format_info = probe_data.get('format', {})
